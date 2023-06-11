@@ -10,8 +10,13 @@ __config() -> (
 __on_player_uses_item(player, item_tuple, hand) -> (
     if(item_tuple:0 == 'bundle'
     ,   
+        global_name = item_tuple:2:'display';
+        //print(name);
+        name_i = global_name:'Name';
+        name_display = slice(split(':', name_i):1,1,-3);
+        if(!name_display, name_display = 'bundle');
         inventory_set(player, query(player, 'selected_slot'), 1, 'bundle');
-        screen = create_screen(player(),'generic_9x6', 'bundle', _(screen, player, action, data) -> (
+        screen = create_screen(player(),'generic_9x6', name_display, _(screen, player, action, data) -> (
             if(action == 'throw' && data:'slot' == player~'selected_slot'+81
             ,
                 inventory_set(screen, data:'slot', 0);
@@ -34,16 +39,20 @@ __on_player_uses_item(player, item_tuple, hand) -> (
                     if(i, 
                         if(i:2
                         ,tag += nbt('{Count: '+i:1+'b, id: "minecraft:'+i:0+'",' + 'tag:' + i:2 + '}');
-                        ,tag += nbt('{Count: '+i:1+'b, id: "minecraft:'+i:0+'",' + 'tag:' + '{}' + '}');
-                        //,tag += nbt('{Count: '+i:1+'b, id: "minecraft:'+i:0+'",' + '}');
+                        ,tag += nbt('{Count: '+i:1+'b, id: "minecraft:'+i:0+'"' + '}');
                         );
                     );
                 );
-                items = '{Items:[' + join(',', tag) + ']}';
+                begin_nbt = '{Items:[';
+                end_nbt   =  '}';
+                items = begin_nbt + str(join(',', tag)) + ']';
+                if(global_name, items += ',display:' + global_name);
+                //items += ',display:' + global_name;
+                items += end_nbt;
                 //print(items);
                 if(tag
                 ,    
-                inventory_set(player, query(player, 'selected_slot'), 1, 'bundle', items);
+                inventory_set(player, query(player, 'selected_slot'), 1, 'bundle', (items));
                 );
                 sound('item.bundle.remove_one', pos(player));
             //print('closed');
@@ -60,10 +69,11 @@ __on_player_uses_item(player, item_tuple, hand) -> (
                 , 
                     for(i
                     , 
-              //        print(encode_nbt(_:'tag'));
-                      if(encode_nbt(_:'tag')
-                      , inventory_set(screen, _i, _:'Count', _:'id', encode_nbt(_:'tag'));
-                      , inventory_set(screen, _i, _:'Count', _:'id');
+                      if(_:'tag' == null,
+                      inventory_set(screen, _i, _:'Count', _:'id');
+                      //print('trueeee');
+                      ,inventory_set(screen, _i, _:'Count', _:'id', encode_nbt(_:'tag') );
+                      //print('naottrueeee');
                       );
                     );
                 );
