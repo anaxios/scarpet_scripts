@@ -17,6 +17,11 @@ __on_player_uses_item(player, item_tuple, hand) -> (
         if(!name_display, name_display = 'bundle');
         inventory_set(player, query(player, 'selected_slot'), 1, 'bundle');
         screen = create_screen(player(),'generic_9x6', name_display, _(screen, player, action, data) -> (
+            if(action == 'quick_move' && data:'slot' == player~'selected_slot'+81
+            ,
+                inventory_set(screen, data:'slot', 0);
+                'cancel';
+            );
             if(action == 'throw' && data:'slot' == player~'selected_slot'+81
             ,
                 inventory_set(screen, data:'slot', 0);
