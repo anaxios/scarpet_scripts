@@ -60,17 +60,22 @@ __on_player_swings_hand(player, hand) -> (
 
 __open_grid_of_player_heads(player, player_list) -> (
   
+  for(player_list, if(_ == player, delete(player_list, _i)));
+  
   screen = create_screen(player,'generic_9x6', 'TPA', _(screen, player, action, data)->(
-    if(action == 'pickup' && data:'slot' < 54,
+    
+    if(action == 'pickup' && data:'slot' < 54 && inventory_get(screen, data:'slot') != null,
       player_head = inventory_get(screen, data:'slot'):2:'SkullOwner':'Name';
       other = __get_player_from_name(player_head);
       __tp_player(player, pos(other));
       close_screen(screen);
     );
+    
     'cancel';
   ));
   
   task(_(outer(screen),outer(item_tuple),outer(player_list)) -> (
+    
     if(screen_property(screen, 'open') == 'true',
      for(player_list,
        player_head = __get_player_head_tuple(_);
