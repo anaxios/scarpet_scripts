@@ -7,30 +7,6 @@ __config() -> (
    )
 );
 
-//__on_player_connects(player) -> (
-//  if(!scoreboard('wand', player)
-//  , 
-//    scoreboard_add('wand_x', 'dummy');
-//    scoreboard_add('wand_y', 'dummy');
-//    scoreboard_add('wand_z', 'dummy');
-//    // scoreboard('wand', player(), 1);
-//  global_player_coord = [scoreboard('wand_x', player),scoreboard('wand_y', player),scoreboard('wand_z', player)];
-//  );
-//);
-
-// __on_player_disconnects(player, reason) -> (
-//   if(!scoreboard('wand', player)
-//   , 
-//     scoreboard_add('wand_x', 'dummy');
-//     scoreboard_add('wand_y', 'dummy');
-//     scoreboard_add('wand_z', 'dummy');
-//     // scoreboard('wand', player(), 1);
-//   scoreboard('wand_x', player, global_player_coord:0);
-//   scoreboard('wand_y', player, global_player_coord:1);
-//   scoreboard('wand_z', player, global_player_coord:2);
-//   );
-// );
-
 __on_start() -> (
   __get_wormhole_database();
   global_first  = null;
@@ -52,11 +28,8 @@ __on_player_attacks_entity(player, entity) -> (
     xp = query(player, 'xp_level');
     modify(player, 'xp_level', xp-1);
     sound('entity.enderman.teleport', pos(player));
-    // spawn('ender_pearl', pos(player)); 
     last_position = global_player_coord;
     particle('sonic_boom', pos(entity));
-    //global_player_coord = pos(player);
-    //schedule(0, '__save_position', player);
     schedule(1, '__tp_player', entity, last_position);
     'cancel';
   );
@@ -64,9 +37,12 @@ __on_player_attacks_entity(player, entity) -> (
 
 __on_player_swings_hand(player, hand) -> (
   held_item = query(player, 'holds', 'mainhand');
-  if(__holding_wand(player) && hand == 'mainhand' && query(player, 'xp_level') > 0 && !query(player, 'trace', 4.5, 'blocks') && !query(player, 'trace', 4.5, 'entities') && !__get_wearing_head(player) 
+  if(__holding_wand(player) && hand == 'mainhand' 
+                            && query(player, 'xp_level') > 0 
+                            && !query(player, 'trace', 4.5, 'blocks') 
+                            && !query(player, 'trace', 4.5, 'entities') 
+                            && !__get_wearing_head(player) 
   , 
-    // spawn('ender_pearl', pos(player)); 
     __take_xp_level(player);
     sound('entity.enderman.teleport', pos(player));
     last_position = global_player_coord;
@@ -74,7 +50,12 @@ __on_player_swings_hand(player, hand) -> (
     global_player_coord = pos(player);
     schedule(0, '__save_position', player);
     schedule(1, '__tp_player', player, last_position);
-  , __holding_wand(player) && hand == 'mainhand' && query(player, 'xp_level') > 0 && !query(player, 'trace', 4.5, 'blocks') && !query(player, 'trace', 4.5, 'entities') && __get_wearing_head(player) 
+  , __holding_wand(player) && hand == 'mainhand' 
+                           && query(player, 'xp_level') > 0 
+                           && !query(player, 'trace', 4.5, 'blocks') 
+                           && !query(player, 'trace', 4.5, 'entities') 
+                           && __get_wearing_head(player)
+                           
   , other_player = first(player('all'), _ == __get_wearing_head(player));
     if(__get_wearing_head(other_player) == player~'name'
     , __tp_player(player, pos(other_player));
