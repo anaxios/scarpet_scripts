@@ -41,29 +41,60 @@ __on_player_swings_hand(player, hand) -> (
                             && query(player, 'xp_level') > 0 
                             && !query(player, 'trace', 4.5, 'blocks') 
                             && !query(player, 'trace', 4.5, 'entities') 
-                            && !__get_wearing_head(player) 
-  , 
-    __take_xp_level(player);
-    sound('entity.enderman.teleport', pos(player));
-    last_position = global_player_coord;
-    particle('sonic_boom', pos(player));
-    global_player_coord = pos(player);
-    schedule(0, '__save_position', player);
-    schedule(1, '__tp_player', player, last_position);
+                            && !__get_wearing_head(player), 
+                            
+    __open_grid_of_player_heads(player, player('all'));
+//    __tp_self_to_last_pos(player); 
+    
   , __holding_wand(player) && hand == 'mainhand' 
                            && query(player, 'xp_level') > 0 
                            && !query(player, 'trace', 4.5, 'blocks') 
                            && !query(player, 'trace', 4.5, 'entities') 
-                           && __get_wearing_head(player)
+                           && __get_wearing_head(player), 
                            
-  , other_player = first(player('all'), _ == __get_wearing_head(player));
+    other_player = __get_other_player_wearing_my_head(player);
+    __tp_to_other_player(other_player, player);
+  );
+  
+);
+
+__open_grid_of_player_heads(player, player_list) -> (
+  
+  screen = create_screen(player,'generic_9x6', 'TPA', _(screen, player, action, data)->(
+    if(action == 'pickup' && data:'slot' < 54,
+      player_head = inventory_get(screen, data:'slot'):2:'SkullOwner':'Name';
+      other = __get_player_from_name(player_head);
+      __tp_player(player, pos(other));
+      close_screen(screen);
+    );
+    'cancel';
+  ));
+  
+  task(_(outer(screen),outer(item_tuple),outer(player_list)) -> (
+    if(screen_property(screen, 'open') == 'true',
+     for(player_list,
+       player_head = __get_player_head_tuple(_);
+       inventory_set(screen, _i, 1, player_head:0, player_head:1);
+      );
+    );
+  ));
+);
+
+
+__get_player_from_name(player) -> (
+  first(player('all'), _ == player);
+);
+
+__tp_to_other_player(other_player, player) -> (
     if(__get_wearing_head(other_player) == player~'name'
     , __tp_player(player, pos(other_player));
       __take_xp_level(player);
     , sound('block.note_block.cow_bell', pos(player));
     );
-  );
-  
+);
+    
+__get_other_player_wearing_my_head(player) -> (
+  first(player('all'), _ == __get_wearing_head(player));
 );
 
 __on_player_uses_item(player, item_tuple, hand) -> (
@@ -100,6 +131,15 @@ __on_player_uses_item(player, item_tuple, hand) -> (
   );
 );
 
+__tp_self_to_last_pos(player) -> (
+    __take_xp_level(player);
+    sound('entity.enderman.teleport', pos(player));
+    last_position = global_player_coord;
+    particle('sonic_boom', pos(player));
+    global_player_coord = pos(player);
+    schedule(0, '__save_position', player);
+    schedule(1, '__tp_player', player, last_position);
+);
 
 __is_standing_on_wormhole(pos) -> (
   __is_linked(block(__block_under_foot(pos)));
@@ -191,6 +231,11 @@ __get_wearing_head(player) -> (
 __take_xp_level(player) -> (
   xp = query(player, 'xp_level');
   modify(player, 'xp_level', xp-1);
+);
+
+__get_player_head_tuple(player) -> (
+  
+  ['player_head', '{SkullOwner:' + player + '}'];
 );
 
 __spawn_head(player, loc) -> (
