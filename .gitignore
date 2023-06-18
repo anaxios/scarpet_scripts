@@ -1,4 +1,4 @@
 *.data/
 .DS_Store
 *.data.nbt
-.make
+.make/
