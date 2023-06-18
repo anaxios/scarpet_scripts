@@ -7,9 +7,14 @@ __config() -> (
    )
 );
 
+__on_start() -> (
+    global_keep = 3;
+);
+
 __on_player_uses_item(player, item_tuple, hand) -> (
     if(item_tuple:0 == 'bundle'
     ,   
+        last_inv = [];
         global_name = item_tuple:2:'display';
         //print(name);
         name_i = global_name:'Name';
@@ -68,7 +73,7 @@ __on_player_uses_item(player, item_tuple, hand) -> (
             );
         ));
         
-        task(_(outer(screen),outer(item_tuple),outer(player))->(
+        task(_(outer(screen),outer(item_tuple),outer(player),outer(last_inv))->(
             if(screen_property(screen, 'open') == 'true'
             ,   
                 //print(item_tuple:2:'Items');
@@ -78,6 +83,7 @@ __on_player_uses_item(player, item_tuple, hand) -> (
                 , 
                     for(i
                     , 
+                      last_inv += _;
                       if(_:'tag' == null,
                       inventory_set(screen, _i, _:'Count', _:'id');
                       //print('trueeee');
@@ -86,7 +92,37 @@ __on_player_uses_item(player, item_tuple, hand) -> (
                       );
                     );
                 );
+            //print(last_inv);
+            __save_inventory(last_inv);
+            __remove_saved_inv_file();
             );
         ));
+    );
+);
+
+__save_inventory(inv) -> (
+    if(inv,
+        write_file(player()+'_last-inv_'+unix_time() , 'json', inv);
+    );
+
+);
+
+__sort_files(files) -> (
+    sort_key(files, -number((split('_', _):2)));
+);
+
+__remove_saved_inv_file() -> (
+    files = list_files('', 'json');
+    files = __sort_files(files);
+
+    for(range(global_keep),
+        delete(files, _);
+    );
+
+    for(files,
+        name = split('_', _);
+        if(name:0 == player(),
+            delete_file(_, 'json');
+        );
     );
 );
