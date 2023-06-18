@@ -95,7 +95,10 @@ __on_player_swings_hand(player, hand) -> (
 
 __open_grid_of_player_heads(player, player_list) -> (
   
-  //for(player_list, if(_ == player, delete(player_list, _i)));
+  for(player_list, if(_ == player || _~'player_type' == 'fake', 
+      delete(player_list, _i);
+      )
+);
   
   screen = create_screen(player,'generic_9x6', 'tpa', _(screen, player, action, data)->(
     
@@ -224,16 +227,19 @@ __has_luck(nbt) -> (
 //   __find_wormhole_link(__new_link(__block_under_foot(pos), player()~'dimension', null, null));
 // );
 
+
 __on_player_breaks_block(player, block) -> (
-  if(__link_part_global_links_match(__link_part_new(pos(block), player~'dimension', player~'uuid')) && block == 'lodestone' 
+  if(__link_part_global_links_match(__link_part_new(pos(block), player~'dimension', player~'uuid')) 
+    && block == 'lodestone' 
+    && __link_get_uuid(__link_part_new(pos(block), player~'dimension', player~'uuid')) == player~'uuid' 
   , __link_delete_from_global_links(pos(block));
     __link_store('__to_disk', global_links);
     sound('block.beacon.deactivate', pos(player));
-    print(__link_get_uuid(pos(block), player~'dimension', player~'uuid'));
-  , __link_get_uuid(pos(block), player~'dimension', player~'uuid') != 0 
-                    && __link_get_uuid(pos(block), player~'dimension', player~'uuid') != null 
-                    && block == 'lodestone'
-  ,  print(__link_get_uuid(pos(block), player~'dimension', player~'uuid'));
+    //print(__link_get_uuid(pos(block), player~'dimension', player~'uuid'));
+  , __link_part_global_links_match(__link_part_new(pos(block), player~'dimension', player~'uuid'))
+    && __link_get_uuid(__link_part_new(pos(block), player~'dimension', player~'uuid')) != player~'uuid' 
+    && block == 'lodestone'
+  ,  //print(__link_get_uuid(pos(block), player~'dimension', player~'uuid'));
    'cancel';
   );
 );
@@ -303,8 +309,8 @@ __link_match(self, other) -> (
 );
 
 __link_part_match(link, part) -> (
-    (part:'pos' == link:'first':'pos' && part:'dim' == link:'first':'dim' && part:'uuid' == link:'first':'uuid') 
-    || (part:'pos' == link:'second':'pos' && part:'dim' == link:'second':'dim' && part:'uuid' == link:'second':'uuid')
+    (part:'pos' == link:'first':'pos' && part:'dim' == link:'first':'dim') // && part:'uuid' == link:'first':'uuid') 
+    || (part:'pos' == link:'second':'pos' && part:'dim' == link:'second':'dim') // && part:'uuid' == link:'second':'uuid')
 );
 
 __link_part_global_links_match(part) -> (
@@ -344,11 +350,16 @@ __link_sort(link_list) -> (
     sort_key(link_list, _:'link1':'pos')
 );
 
-__link_get_uuid(pos, dimension, uuid) -> (
-  for(globel_links
-  ,   if((_:'first':'pos' == pos && _:'first':'dim' == dimension) 
-        || (_:'second':'pos' == pos && _:'second':'dim' == dimension)
-      , print(_:'first':'owner') 
+__link_get_uuid(part) -> (
+  for(global_links,
+  //print(_:'first':'pos');
+  ,   if((part:'pos' == _:'first':'pos' && part:'dim' == _:'first':'dim') 
+      || (part:'pos' == _:'second':'pos' && part:'dim' == _:'second':'dim')
+      , //print(_:'first':'owner':0);
+        return(_:'first':'owner':0);
       ); 
+    //  if(_:'first':'pos' == [5163, 63, 402]
+     //   || (_:'second':'pos' == pos && _:'second':'dim' == dimension)
+      // ); 
   );
 );
