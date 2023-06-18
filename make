@@ -4,7 +4,6 @@
 
 CONF_FOLDER=".make"
 DESTS=()
-LAST_RUN=$(<./"${CONF_FOLDER}"/lastrun)
 SCRIPTS=()
 
 setup_dotfolder() {
@@ -28,12 +27,14 @@ read_destination_file() {
 }
 
 get_modified_scripts() {
+    LAST_RUN=$(<./"${CONF_FOLDER}"/lastrun)
     for file in ./*; do
         extension="${file##*.}"
         if [[ ${extension} == 'sc' && ${LAST_RUN} < $(date -r "${file}" +"%s") ]]; then
             SCRIPTS+=("${file}")
         fi
     done
+    date +"%s" > ./"${CONF_FOLDER}/lastrun"
 }
 
 send_scripts_to_destinations() {
@@ -43,7 +44,6 @@ send_scripts_to_destinations() {
             rsync -azvhP  "${SCRIPTS[@]}" "${dest}/"
         done
     fi
-    date +"%s" > ./"${CONF_FOLDER}/lastrun"
 }
 
 setup_dotfolder
