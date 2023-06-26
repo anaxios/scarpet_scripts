@@ -94,12 +94,13 @@ __on_player_swings_hand(player, hand) -> (
 );
 
 __open_grid_of_player_heads(player, player_list) -> (
-  
-  for(player_list, if(_ == player || _~'player_type' == 'fake', 
-      delete(player_list, _i);
+  pl = [];
+  for(player_list, 
+    if(!(_~'player_type' == 'fake' || _ == player), 
+      pl += _;
       )
-);
-  
+  );
+
   screen = create_screen(player,'generic_9x6', 'tpa', _(screen, player, action, data)->(
     
     if(action == 'pickup' && data:'slot' < 54 && inventory_get(screen, data:'slot') != null,
@@ -113,10 +114,10 @@ __open_grid_of_player_heads(player, player_list) -> (
     'cancel';
   ));
   
-  task(_(outer(screen),outer(item_tuple),outer(player_list)) -> (
+  task(_(outer(screen),outer(item_tuple),outer(pl)) -> (
     
     if(screen_property(screen, 'open') == 'true',
-     for(player_list,
+     for(pl,
        player_head = __get_player_head_tuple(_);
        inventory_set(screen, _i, 1, player_head:0, player_head:1);
       );
@@ -272,7 +273,7 @@ __get_player_head_tuple(player) -> (
 //     xv = rand(0.5)-0.25;
 //     yv = rand(0.5);
 //     zv = rand(0.5)-0.25;
-    
+//    
 //     motion = '[' + xv + 'd, ' + yv + 'd, ' + zv + 'd' + ']';
 //     data = '{motion: ' + motion + ', item: {id: "minecraft:player_head", count:1b, tag:{skullowner: "' + player + '"}}}, pickupdelay: 3s';
 //     __take_xp_level(player);
