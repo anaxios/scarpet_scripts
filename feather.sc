@@ -1,5 +1,4 @@
 //!scarpet v1.5
-
 // stay loaded
 __config() -> (
    m(
@@ -9,8 +8,7 @@ __config() -> (
 
 __on_player_dies(player) -> (
   if(__holding_feather(player)
-  , 
-    inventory_remove(player, 'feather', 1);
+  , inventory_remove(player, 'feather', 1);
     __store_player_inventory(player);
     __stop_items_from_dropping(player); 
   ); 
@@ -20,7 +18,7 @@ __on_player_dies(player) -> (
 __on_player_respawns(player) -> (
   if(__stored_player_inventory_exists(player)
   , schedule(0, '__restore_player_inventory', player);
-    schedule(2,'__delete_stored_player_inventory', player);
+    schedule(2, '__delete_stored_player_inventory', player);
   );
 );
 
