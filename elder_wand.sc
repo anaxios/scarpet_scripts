@@ -61,7 +61,7 @@ __tp_to_link(player, link) -> (
 );
 
 __on_player_attacks_entity(player, entity) -> (  
-  held_item = query(player, 'holds', 'mainhand');
+  //held_item = query(player, 'holds', 'mainhand');
   if(__holding_wand(player), 
     sound('entity.enderman.teleport', pos(player));
     last_position = global_player_coord;
@@ -79,16 +79,6 @@ __on_player_swings_hand(player, hand) -> (
                             && !query(player, 'trace', 4.5, 'entities'), 
                             
     __open_grid_of_player_heads(player, player('all'));
-//    __tp_self_to_last_pos(player); 
-    
-  // , __holding_wand(player) && hand == 'mainhand' 
-  //                          && query(player, 'xp_level') > 0 
-  //                          && !query(player, 'trace', 4.5, 'blocks') 
-  //                          && !query(player, 'trace', 4.5, 'entities') 
-  //                          && __get_wearing_head(player), 
-                           
-  //   other_player = __get_other_player_wearing_my_head(player);
-  //   __tp_to_other_player(other_player, player);
   );
   
 );
@@ -114,7 +104,7 @@ __open_grid_of_player_heads(player, player_list) -> (
     'cancel';
   ));
   
-  task(_(outer(screen),outer(item_tuple),outer(pl)) -> (
+  task(_(outer(screen), outer(item_tuple), outer(pl)) -> (
     
     if(screen_property(screen, 'open') == 'true',
      for(pl,
@@ -125,37 +115,23 @@ __open_grid_of_player_heads(player, player_list) -> (
   ));
 );
 
-
 __get_player_from_name(player) -> (
   for(player('all'), 
-  if(_ == player,
-    return(_) 
-  )
+  if(_ == player, return(_))
   );
 );
 
-// __tp_to_other_player(other_player, player) -> (
-//     if(__get_wearing_head(other_player) == player~'name'
-//     , __tp_player(player, pos(other_player));
-//       __take_xp_level(player);
-//     , sound('block.note_block.cow_bell', pos(player));
-//     );
-// );
-    
-// __get_other_player_wearing_my_head(player) -> (
-//   first(player('all'), _ == __get_wearing_head(player));
-// );
 
 __on_player_uses_item(player, item_tuple, hand) -> (
   looking_at = query(player, 'trace', 4.5, 'blocks');
-  //link_part_looking_at = __link_part_new(pos(looking_at), player~'dimension');
+  
   if(__holding_wand(player) && hand == 'mainhand' && looking_at == 'lodestone'
-  , // global_second called first otherwise it's set immediately on first attempt 
-    link_part_looking_at = __link_part_new(pos(looking_at), player~'dimension');
+  , link_part_looking_at = __link_part_new(pos(looking_at), player~'dimension');
     if(global_part1:'pos' != null && global_part1:'dim' != null && !__link_part_global_links_match(link_part_looking_at)
     , part2 = __link_part_new(pos(looking_at), player~'dimension', player~'uuid');
       sound('block.end_portal_frame.fill', pos(player));
     );
+
     if(global_part1:'pos' == null && global_part1:'dim' == null && !__link_part_global_links_match(link_part_looking_at)
     , global_part1 = __link_part_new(pos(looking_at), player~'dimension', player~'uuid');
       sound('block.end_portal_frame.fill', pos(player));
@@ -177,15 +153,15 @@ __on_player_uses_item(player, item_tuple, hand) -> (
   );
 );
 
-// __tp_self_to_last_pos(player) -> (
-//     __take_xp_level(player);
-//     sound('entity.enderman.teleport', pos(player));
-//     last_position = global_player_coord;
-//     particle('sonic_boom', pos(player));
-//     global_player_coord = pos(player);
-//     schedule(0, '__save_position', player);
-//     schedule(1, '__tp_player', player, last_position);
-// );
+__tp_self_to_last_pos(player) -> (
+    //__take_xp_level(player);
+    sound('entity.enderman.teleport', pos(player));
+    last_position = global_player_coord;
+    particle('sonic_boom', pos(player));
+    global_player_coord = __link_part_new(pos(player), player~'dimension');
+    schedule(0, '__save_position', player);
+    schedule(1, '__tp_player', player, last_position);
+);
 
 
 __holding_wand(player) -> (
@@ -211,22 +187,6 @@ __has_luck(nbt) -> (
     false
   );
 );
-
-
-// __get_wormhole_database() -> (
-//   if(read_file('wormhole_links', 'json')
-//   , global_wormhole_links = decode_json(read_file('wormhole_links', 'json'));
-//   , global_wormhole_links = [];
-//   );
-// );
-
-// __block_under_foot(pos) -> (
-//   pos_offset(pos, 'down', 1);
-// );
-
-// __get_link_destination(pos) -> (
-//   __find_wormhole_link(__new_link(__block_under_foot(pos), player()~'dimension', null, null));
-// );
 
 
 __on_player_breaks_block(player, block) -> (
@@ -288,11 +248,12 @@ __tp_player(player, link_part) -> (
 );
 
 __save_position(player) -> (
-    global_player_coord = pos(player);
+    global_player_coord = __link_part_new(pos(player), player~'dimension');
 );
 
 
 ////// LINK STUFF
+// TODO uuid should not be an array remove ... and fix places with :0 
 __link_part_new(pos, dim, ... uuid) -> (
   if(!uuid, uuid = null);
     return(

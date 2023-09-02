@@ -62,11 +62,9 @@ __on_player_uses_item(player, item_tuple, hand) -> (
                 //print(items);
                 
                 if(tag
-                ,    
-                inventory_set(player, query(player, 'selected_slot'), 1, 'bundle', (items));
-                , global_name
-                ,
-                inventory_set(player, query(player, 'selected_slot'), 1, 'bundle', '{display:'+ global_name + end_nbt);
+                ,  inventory_set(player, query(player, 'selected_slot'), 1, 'bundle', (items));
+                ,  global_name
+                ,  inventory_set(player, query(player, 'selected_slot'), 1, 'bundle', '{display:'+ global_name + end_nbt);
                 );
                 sound('item.bundle.remove_one', pos(player));
             //print('closed');

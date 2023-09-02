@@ -1,3 +1,4 @@
+
 __config() -> {
     'command_permission' -> 'ops',
     'commands' -> {
